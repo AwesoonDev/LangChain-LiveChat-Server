@@ -20,6 +20,9 @@ class DatabaseApiClient:
     def get_shop_prompt(self, shop_id):
         return self._make_request(requests.get, f"shops/{shop_id}/prompt")["prompt"]
 
+    def get_shop_contact_info(self, shop_id):
+        return self._make_request(requests.get, f"shops/{shop_id}")["contact_email"]
+
     def get_closest_shop_doc(self, embedding: List[float], shop_id: int):
         data = {
             "query_embedding": embedding

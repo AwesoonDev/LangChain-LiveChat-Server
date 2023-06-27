@@ -2,6 +2,7 @@ import json
 
 from flask import Flask, request
 from langchain import OpenAI
+from chatup_chat.core.customer_conversation import CustomerConversation
 from chatup_chat.core.db_client import DatabaseApiClient
 from flask_socketio import SocketIO, emit
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
@@ -44,7 +45,8 @@ let the customer know where it is getting his knowledge from. The context provid
 relate to the question being asked if its not related refer them to the store contact info. The AI
 only gives responses that satisfy the question and not extra unecessary information from the context or anywhere else.
 The AI response is very important to be always in html format. the ai response needs to be well formatted with any necessary
-indenations like new lines (<br>) and such.
+indenations like new lines (<br>) and such. It is important that the AI provides actual uselful information and not
+placeholders
 {history}
 Current conversation:
 Customer: {input}
@@ -59,7 +61,7 @@ AI Assistant:"""
 
 @socketio.on("connect")
 def handle_connect():
-    conversations[request.sid] = {"conversation_chain": None}
+    conversations[request.sid] = {"conversation": None}
     print(f"New connection: {request.sid}")
 
 
@@ -77,14 +79,11 @@ def handle_user_message(data):
     shop_id = int(data["shop_id"])
     print(user_input)
     if request.sid in conversations:
-        conv_chain = conversations[request.sid]["conversation_chain"]
+        conv_chain = conversations[request.sid]["conversation"]
         if conv_chain is None:
-            conversations[request.sid]["conversation_chain"] = create_conversation_chain()
-        query_embedding = get_user_query_embedding(user_input)
-        context = db_client.get_closest_shop_doc(query_embedding, shop_id)
-        input = f"""{user_input}\nContext-Start\n================\n{context}\n===============\nContext-end"""
-        user_input = input
-        conversations[request.sid]["conversation_chain"].predict(input=user_input)
+            conversations[request.sid]["conversation"] = CustomerConversation(shop_id=shop_id)
+        conversations[request.sid]["conversation"].register_shop(shop_id)
+        conversations[request.sid]["conversation"].converse(user_input)
     else:
         print(f"Error: No conversation found for {request.sid}")
 
