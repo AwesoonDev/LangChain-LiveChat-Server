@@ -55,8 +55,8 @@ class AdminManager(Manager):
         cache.clear_cache(f"admin_*_{admin.session_id}")
         rooms = self.room_manager.get_live_rooms(admin.shop_id)
         for room in rooms:
-            room.admin_managed = False
-            room.save()
+            if room.admin_managed:
+                room.admin_forfeited()
 
     def reset_connections(self):
         admins = self.get_space_admin("admin_*")

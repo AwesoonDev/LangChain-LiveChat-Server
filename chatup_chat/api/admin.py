@@ -41,14 +41,19 @@ class Admin(Namespace):
         conversation_ids = [room.conversation_id for room in rooms]
         emit("live_conversations", conversation_ids)
 
+    def on_join(self, data):
+        conversation_id = data["conversation_id"]
+        customer_bot = load_chat_bot(conversation_id=conversation_id)
+        print("Admin joining: ", conversation_id)
+        room = room_manager.get_room_by_conversation_id(conversation_id)
+        room.set_bot(customer_bot)
+        room.admin_joined()
+
     def on_message(self, data):
         admin_message = message_schema.load(data)
-        customer_bot = load_chat_bot(conversation_id=admin_message["conversation_id"])
         admin = admin_manager.get_admin_by_session(request.sid)
         print("Received another event with data: ", data)
         room = room_manager.get_room_by_conversation_id(admin_message["conversation_id"])
-        room.set_bot(customer_bot)
-        admin.take_over_conversation(room)
         admin.message_user(room, Message(
             message=admin_message["message"],
             message_type=MessageType.USER.value,
@@ -58,5 +63,4 @@ class Admin(Namespace):
     def on_forfeit(self, data):
         conversation_id = data["conversation_id"]
         room = room_manager.get_room_by_conversation_id(conversation_id)
-        room.admin_managed = False
-        room.save()
+        room.admin_forfeited()

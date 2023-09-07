@@ -27,8 +27,3 @@ class Admin:
     def message_user(self, room, message: Message):
         room.admin_messages_user(message)
 
-    def take_over_conversation(self, room):
-        room.admin_managed = True
-        room.admin_session_id = self.session_id
-        room.save()
-
