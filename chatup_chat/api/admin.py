@@ -43,17 +43,18 @@ class Admin(Namespace):
 
     def on_join(self, data):
         conversation_id = data["conversation_id"]
-        customer_bot = load_chat_bot(conversation_id=conversation_id)
+        admin = admin_manager.get_admin_by_session(request.sid)
         print("Admin joining: ", conversation_id)
         room = room_manager.get_room_by_conversation_id(conversation_id)
-        room.set_bot(customer_bot)
-        room.admin_joined()
+        room.admin_joined(admin)
 
     def on_message(self, data):
         admin_message = message_schema.load(data)
         admin = admin_manager.get_admin_by_session(request.sid)
+        customer_bot = load_chat_bot(conversation_id=admin_message["conversation_id"])
         print("Received another event with data: ", data)
         room = room_manager.get_room_by_conversation_id(admin_message["conversation_id"])
+        room.set_bot(customer_bot)
         admin.message_user(room, Message(
             message=admin_message["message"],
             message_type=MessageType.USER.value,
