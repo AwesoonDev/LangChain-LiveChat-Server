@@ -5,7 +5,6 @@ import os
 from typing import Any
 from chatup_chat.adapter.analytics_client import ChatAnalyticsApiClient
 from chatup_chat.adapter.db_client import DatabaseApiClient
-from chatup_chat.api.admin import Admin
 from chatup_chat.core import Bot
 from chatup_chat.core.cache import RedisClusterJson
 from flask_socketio import emit
@@ -45,7 +44,7 @@ class Room:
             "last_activity_time": self.last_activity_time
         }
 
-    def admin_joined(self, admin: Admin):        
+    def admin_joined(self, admin):
         self.admin_managed = True
         self.admin_session_id = admin.session_id
         self.save()
