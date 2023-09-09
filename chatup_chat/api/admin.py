@@ -54,7 +54,7 @@ class Admin(Namespace):
         customer_bot = load_chat_bot(conversation_id=admin_message["conversation_id"])
         print("Received another event with data: ", data)
         room = room_manager.get_room_by_conversation_id(admin_message["conversation_id"])
-        # room.set_bot(customer_bot)
+        room.set_bot(customer_bot)
         admin.message_user(room, Message(
             message=admin_message["message"],
             message_type=MessageType.USER.value,
