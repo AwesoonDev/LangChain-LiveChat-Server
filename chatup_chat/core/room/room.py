@@ -44,8 +44,18 @@ class Room:
             "last_activity_time": self.last_activity_time
         }
 
-    def admin_messages_user(self, msg: Message):
+    def admin_joined(self, admin):
         self.admin_managed = True
+        self.admin_session_id = admin.session_id
+        self.save()
+        emit("admin_joined", namespace="/customer", to=self.occupant_session_id)
+
+    def admin_forfeited(self):
+        self.admin_managed = False
+        self.save()
+        emit("admin_forfeited", namespace="/customer", to=self.occupant_session_id)
+
+    def admin_messages_user(self, msg: Message):
         print("admin says: ", msg.message, self.occupant_session_id)
         emit("admin_response", msg.message, namespace="/customer", to=self.occupant_session_id)
         save_message(self, msg)
@@ -69,16 +79,14 @@ class Room:
 
     def user_says(self, message: Message):
         save_message(self, message)
-        self.bot.converse()
-        # result = "".join(self.bot.response)
-        # emit("ai_response", result, namespace="/customer", to=self.occupant_session_id)
-        if CONVERSATION_ANALYSIS:
-            chat_analytics.submit_conversation_analytics(self.conversation_id)
         if self.admin_managed:
             emit("customer_response", {
                 "message": message.message,
                 "conversation_id": self.conversation_id
             }, namespace="/admin", to=self.admin_session_id)
+        self.bot.converse()
+        if CONVERSATION_ANALYSIS:
+            chat_analytics.submit_conversation_analytics(self.conversation_id)
 
     def set_bot(self, bot: Bot):
         self.bot = bot
