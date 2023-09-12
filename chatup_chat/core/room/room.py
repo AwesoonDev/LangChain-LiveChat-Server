@@ -79,16 +79,14 @@ class Room:
 
     def user_says(self, message: Message):
         save_message(self, message)
-        self.bot.converse()
-        # result = "".join(self.bot.response)
-        # emit("ai_response", result, namespace="/customer", to=self.occupant_session_id)
-        if CONVERSATION_ANALYSIS:
-            chat_analytics.submit_conversation_analytics(self.conversation_id)
         if self.admin_managed:
             emit("customer_response", {
                 "message": message.message,
                 "conversation_id": self.conversation_id
             }, namespace="/admin", to=self.admin_session_id)
+        self.bot.converse()
+        if CONVERSATION_ANALYSIS:
+            chat_analytics.submit_conversation_analytics(self.conversation_id)
 
     def set_bot(self, bot: Bot):
         self.bot = bot
